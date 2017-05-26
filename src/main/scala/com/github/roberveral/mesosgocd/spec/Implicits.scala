@@ -33,6 +33,12 @@ object Implicits {
     resourcesProto.asJava
   }
 
+  /**
+    * Converts [[Resources]] to a sequence of individual [[Resource]].
+    *
+    * @param resources resources to convert
+    * @return the sequence of [[Resource]]
+    */
   implicit def resourcesToResourceSeq(resources: Resources): Seq[Resource] =
     List(ScalarResource(Resource.CPUS, resources.cpus),
       ScalarResource(Resource.MEM, resources.mem),

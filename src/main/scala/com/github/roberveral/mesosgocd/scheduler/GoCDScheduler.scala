@@ -12,6 +12,8 @@ import com.github.roberveral.mesosgocd.spec.Implicits._
 import scala.collection.JavaConverters._
 
 /**
+  * Scheduler for the GoCD framework.
+  *
   * @author Rober Veral
   */
 class GoCDScheduler(task: Task) extends Scheduler with OfferUtils {
@@ -28,32 +30,33 @@ class GoCDScheduler(task: Task) extends Scheduler with OfferUtils {
   override def statusUpdate(schedulerDriver: SchedulerDriver, taskStatus: Protos.TaskStatus): Unit =
     println(s"received status update $taskStatus")
 
-  override def frameworkMessage(schedulerDriver: SchedulerDriver, executorID: Protos.ExecutorID, slaveID: Protos.SlaveID, bytes: Array[Byte]): Unit = {}
+  override def frameworkMessage(schedulerDriver: SchedulerDriver,
+                                executorID: Protos.ExecutorID,
+                                slaveID: Protos.SlaveID,
+                                bytes: Array[Byte]): Unit = {}
 
   override def resourceOffers(schedulerDriver: SchedulerDriver, list: util.List[Protos.Offer]): Unit = {
     // https://github.com/apache/mesos/blob/1.2.0/include/mesos/mesos.proto
     val receivedOffers = list.asScala
-
-    println(s"Received offers")
-
-    val (validOffers, invalidOffers) = receivedOffers.partition(checkOffer(task, _))
-
-    if (validOffers.nonEmpty) {
-      val acceptedOffer = validOffers.head
-
-      val taskInfo: Protos.TaskInfo.Builder = task
-
-      schedulerDriver.launchTasks(List(acceptedOffer.getId).asJava,
-        List(task.setSlaveId(acceptedOffer.getSlaveId).build()).asJava)
-
-      (validOffers.tail ++ invalidOffers) foreach(offer => schedulerDriver.declineOffer(offer.getId))
-    } else
-      invalidOffers foreach(offer => schedulerDriver.declineOffer(offer.getId))
-
+    // Select a valid offer for the task to run
+    val optionalAcceptOffer = receivedOffers.find(checkOffer(task, _))
+    // If there is a valid offer, get the remaining offers
+    val remainingOffers = receivedOffers diff optionalAcceptOffer.toList
+    // Launche the task by accepting the offer
+    optionalAcceptOffer.foreach(offer =>
+      schedulerDriver.launchTasks(List(offer.getId).asJava,
+        List(taskToProto(task).setSlaveId(offer.getSlaveId).build()).asJava))
+    // Decline the other offers
+    remainingOffers foreach(offer => schedulerDriver.declineOffer(offer.getId))
   }
 
-  override def registered(schedulerDriver: SchedulerDriver, frameworkID: Protos.FrameworkID, masterInfo: Protos.MasterInfo): Unit =
+  override def registered(schedulerDriver: SchedulerDriver,
+                          frameworkID: Protos.FrameworkID,
+                          masterInfo: Protos.MasterInfo): Unit =
     println(s"Framework registered with ID: $frameworkID")
 
-  override def executorLost(schedulerDriver: SchedulerDriver, executorID: Protos.ExecutorID, slaveID: Protos.SlaveID, i: Int): Unit = {}
+  override def executorLost(schedulerDriver: SchedulerDriver,
+                            executorID: Protos.ExecutorID,
+                            slaveID: Protos.SlaveID,
+                            i: Int): Unit = {}
 }

@@ -18,6 +18,8 @@ services:
       MESOS_REGISTRY: replicated_log # default is in_memory for some reason
       #MESOS_HOSTNAME: ${DOCKER_IP}
       #LIBPROCESS_IP: ${DOCKER_IP}
+    volumes:
+      - /tmp/mesos:/tmp/mesos
     depends_on:
       - zk
 
@@ -38,8 +40,11 @@ services:
       #LIBPROCESS_IP: ${DOCKER_IP}
       MESOS_WORK_DIR: /tmp/mesos
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
+      - /sys:/sys
+      - /cgroup:/cgroup
+      - /tmp/mesos:/tmp/mesos
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/local/bin/docker:/usr/local/bin/docker
     depends_on:
       - zk
       - master
