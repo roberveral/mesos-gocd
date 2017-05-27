@@ -1,3 +1,9 @@
 language: java
 
-script: mvn clean test scoverage:check scalastyle:check
+sudo: required
+
+script:
+  - mvn clean test scoverage:check scalastyle:check
+
+services:
+  - docker
