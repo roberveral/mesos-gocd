@@ -9,4 +9,4 @@ package com.github.roberveral.mesosgocd.spec
   */
 case class Resources(cpus: Double,
                      mem: Double,
-                     ports: Seq[Int])
+                     ports: Seq[Int] = Seq())

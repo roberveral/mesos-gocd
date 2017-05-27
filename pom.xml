@@ -171,7 +171,7 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>${docker.plugin.version}</version>
                 <configuration>
-                    <imageName>${project.artifactId}</imageName>
+                    <imageName>roberveral/${project.artifactId}</imageName>
                     <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
                     <resources>
                         <resource>
@@ -201,7 +201,7 @@
                             <goal>push</goal>
                         </goals>
                         <configuration>
-                            <imageName>${project.artifactId}:${project.version}</imageName>
+                            <imageName>roberveral/${project.artifactId}:${project.version}</imageName>
                         </configuration>
                     </execution>
                 </executions>
